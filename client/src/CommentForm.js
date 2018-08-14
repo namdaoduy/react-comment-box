@@ -3,7 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 const CommentForm = props => (
-  <form onSubmit={props.submitComment}>
+  <div>
     <input
       type="text"
       name="author"
@@ -16,14 +16,14 @@ const CommentForm = props => (
       name="text"
       placeholder="Say something..."
       value={props.text}
-      onChange={props.handleTextChange}
+      onChange={props.handleChangeText}
     />
-    <button type="submit">Submit</button>
-  </form>
+    <button onClick={props.handleSubmit}>Submit</button>
+  </div>
 );
 
 CommentForm.propTypes = {
-  submitComment: PropTypes.func.isRequired,
+  handleSubmit: PropTypes.func.isRequired,
   handleChangeText: PropTypes.func.isRequired,
   text: PropTypes.string,
   author: PropTypes.string,
