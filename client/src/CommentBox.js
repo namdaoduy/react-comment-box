@@ -76,7 +76,7 @@ class CommentBox extends Component {
       body: JSON.stringify({ author, text }),
     }).then(res => res.json()).then((res) => {
       if (!res.success) this.setState({ error: res.error.message || res.error });
-      else this.setState({ author: '', text: '', error: null });
+      else this.setState({ text: '', error: null });
       this.loadCommentsFromServer();
     });
   }
@@ -89,21 +89,9 @@ class CommentBox extends Component {
       body: JSON.stringify({ author, text }),
     }).then(res => res.json()).then((res) => {
       if (!res.success) this.setState({ error: res.error.message || res.error });
-      else this.setState({ author: '', text: '', updateId: null });
+      else this.setState({ text: '', updateId: null });
       this.loadCommentsFromServer();
     });
-  }
-
-  componentDidMount() {
-    this.loadCommentsFromServer();
-    if (!this.pollInterval) {
-      this.pollInterval = setInterval(this.loadCommentsFromServer, 10000);
-    }
-  }
-
-  componentWillUnmount() {
-    if (this.pollInterval) clearInterval(this.pollInterval);
-    this.pollInterval = null;
   }
 
   loadCommentsFromServer = () => {
@@ -113,20 +101,46 @@ class CommentBox extends Component {
       .then(data => data.json())
       .then((res) => {
         if (!res.success) this.setState({ error: res.error });
-        else this.setState({ data: res.data });
+        else if (JSON.stringify(this.state.data) !== JSON.stringify(res.data)) {
+          console.log(res.data)
+          this.setState({ data: res.data });
+        }
       });
+  }
+
+  scrollToBottom = () => {
+    this.messagesEnd.scrollIntoView({ behavior: "smooth" });
+  }
+
+  componentDidMount() {
+    this.loadCommentsFromServer();
+    if (!this.pollInterval) {
+      this.pollInterval = setInterval(this.loadCommentsFromServer, 10000);
+    }
+    this.scrollToBottom();
+  }
+
+  componentWillUnmount() {
+    if (this.pollInterval) clearInterval(this.pollInterval);
+    this.pollInterval = null;
+  }
+
+  componentDidUpdate() {
+    this.scrollToBottom();
   }
 
   render() {
     return (
       <div className="container">
         <div className="comments">
-          <h2>Comments:</h2>
           <CommentList 
             handleDeleteComment={this.onDeleteComment}
             handleUpdateComment={this.onUpdateComment}
             data={this.state.data} 
           />
+        <div style={{ float:"left", clear: "both" }}
+          ref={(el) => { this.messagesEnd = el; }}>
+        </div>
         </div>
         <div className="form">
           <CommentForm

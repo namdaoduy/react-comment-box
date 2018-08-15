@@ -8,6 +8,7 @@ const CommentForm = props => (
       type="text"
       name="author"
       placeholder="Your name…"
+      autoComplete="off"
       value={props.author}
       onChange={props.handleChangeText}
     />
@@ -15,10 +16,12 @@ const CommentForm = props => (
       type="text"
       name="text"
       placeholder="Say something..."
+      autoComplete="off"
       value={props.text}
       onChange={props.handleChangeText}
+      onKeyPress={(e) => {e.key === "Enter" ? props.handleSubmit(e) : ()=>{}}}
     />
-    <button onClick={props.handleSubmit}>Submit</button>
+    <button onClick={props.handleSubmit}><i className="fab fa-telegram-plane"></i></button>
   </div>
 );
 

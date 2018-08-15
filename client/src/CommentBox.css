@@ -1,9 +1,21 @@
+*:focus {
+  outline: none;
+}
+
+html , body {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+#root {
+  height: 100%;
+}
+
 .container {
+  height: 100%;
   background-color: #f1f1f1;
   box-sizing: border-box;
-  padding: 25px;
-  min-height: 100vh;
-  width: 100vw;
   display: flex;
   flex-flow: column nowrap;
   align-items: center;
@@ -16,10 +28,6 @@
   width: 75%;
   max-width: 700px;
   min-width: 300px;
-}
-
-.comments h2 {
-  font-weight: 300;
 }
 
 .singleComment {
@@ -100,13 +108,21 @@
 }
 
 .form button {
-  color: #999;
-  border-radius: 5px;
-  border: 1px solid #999;
+  color: #24a5eb;
+  font-size: 25px;
+  border: none;
+  padding: 0;
+  width: 40px;
+  background-color: transparent;
+  transition: color 0.5s, font-size 0.5s;
+}
+
+.form button i {
+  font-size: inherit;
 }
 
 .form button:hover {
   cursor: pointer;
-  color: #385997;
-  border-color: #385997;
+  color: #e4a215;
+  font-size: 30px;
 }
