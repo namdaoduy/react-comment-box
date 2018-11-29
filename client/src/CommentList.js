@@ -1,4 +1,3 @@
-// CommentList.js
 import React from 'react';
 import PropTypes from 'prop-types';
 import Comment from './Comment';
@@ -6,12 +5,10 @@ import Comment from './Comment';
 const CommentList = (props) => {
   const commentNodes = props.data.map(comment => (
     <Comment 
-      author={comment.author} 
+      username={comment.username} 
       key={comment._id} 
       id={comment._id}
-      timestamp={comment.updatedAt}
-      handleUpdateComment={props.handleUpdateComment}
-      handleDeleteComment={props.handleDeleteComment}>
+      timestamp={comment.updatedAt}>
       { comment.text}
     </Comment>
   ));
@@ -24,13 +21,11 @@ const CommentList = (props) => {
 
 CommentList.propTypes = {
   data: PropTypes.arrayOf(PropTypes.shape({
-    author: PropTypes.string,
+    username: PropTypes.string,
     id: PropTypes.string,
     text: PropTypes.string,
     updatedAt: PropTypes.string,
-  })),
-  handleDeleteComment: PropTypes.func.isRequired,
-  handleUpdateComment: PropTypes.func.isRequired,
+  }))
 };
 
 CommentList.defaultProps = {

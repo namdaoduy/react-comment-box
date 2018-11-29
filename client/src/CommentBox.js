@@ -1,9 +1,12 @@
 // CommentBox.js
 import React, { Component } from 'react';
+import io from 'socket.io-client'
 import 'whatwg-fetch';
 import CommentList from './CommentList';
 import CommentForm from './CommentForm';
 import './CommentBox.css';
+
+const server = 'http://127.0.0.1:3002';
 
 class CommentBox extends Component {
   constructor() {
@@ -11,10 +14,48 @@ class CommentBox extends Component {
     this.state = {
       data: [],
       error: null,
-      author: '',
-      text: ''
+      text: '',
+      login: false,
+      user_id: null,
+      username: '',
     };
     this.pollInterval = null;
+    this.socket = null;
+  }
+
+  checkLogin = () => {
+    if (this.state.login) return;
+    let username = prompt("Enter Username");
+    let password = prompt("Enter Password");
+    fetch('/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: username, password: password }),
+    })
+    .then(resRaw => resRaw.json())
+    .then(res => {
+      if (res.message == true) {
+        this.setState({
+          login: true,
+          user_id: res.user_id,
+          username: res.username
+        }, () => {
+          this.start();
+        })
+      }
+      else {
+        alert('Login failed');
+        this.checkLogin();
+      }
+    })
+  }
+
+  listener = () => {
+    this.socket.removeAllListeners('message');
+
+    this.socket.on('message', comments => {
+      this.setState({data: comments})
+    })
   }
 
   onChangeText = (e) => {
@@ -23,46 +64,23 @@ class CommentBox extends Component {
     this.setState(newState);
   }
 
-  onUpdateComment = (id) => {
-    const oldComment = this.state.data.find(c => c._id === id);
-    if (!oldComment) return;
-    this.setState({
-        author: oldComment.author,
-        text: oldComment.text,
-        updateId: id
-    });
-  }
-
-  onDeleteComment = (id) => {
-    const i = this.state.data.findIndex(c => c._id === id);
-    const data = [
-      ...this.state.data.slice(0, i),
-      ...this.state.data.slice(i + 1),
-    ];
-    this.setState({ data });
-    fetch(`api/comments/${id}`, { method: 'DELETE' })
-      .then(res => res.json()).then((res) => {
-        if (!res.success) this.setState({ error: res.error });
-      });
-  }
-
   submitComment = (e) => {
     e.preventDefault();
-    const { author, text, updateId } = this.state;
-    if (!author || !text) return;
-    if (updateId) {
-      this.submitUpdatedComment();
-    } else {
-      this.submitNewComment();
-    }
+    const { username, text } = this.state;
+    if (!username || !text) return;
+    this.socket.emit('message', {
+      user_id: this.state.user_id,
+      message: this.state.text
+    })
+    this.setState({ text: '', error: null });
   }
 
   submitNewComment = () => {
-    const { author, text } = this.state;
+    const { username, text } = this.state;
     const data = [
       ...this.state.data,
       {
-        author,
+        username,
           text,
           _id: Date.now().toString(),
           updatedAt: new Date(),
@@ -70,10 +88,10 @@ class CommentBox extends Component {
       },
     ];
     this.setState({ data });
-    fetch('/api/comments', {
+    fetch('/comments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ author, text }),
+      body: JSON.stringify({ username, text }),
     }).then(res => res.json()).then((res) => {
       if (!res.success) this.setState({ error: res.error.message || res.error });
       else this.setState({ text: '', error: null });
@@ -81,23 +99,8 @@ class CommentBox extends Component {
     });
   }
 
-  submitUpdatedComment = () => {
-    const { author, text, updateId } = this.state;
-    fetch(`/api/comments/${updateId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ author, text }),
-    }).then(res => res.json()).then((res) => {
-      if (!res.success) this.setState({ error: res.error.message || res.error });
-      else this.setState({ text: '', updateId: null });
-      this.loadCommentsFromServer();
-    });
-  }
-
   loadCommentsFromServer = () => {
-    // fetch returns a promise. If you are not familiar with promises, see
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
-    fetch('/api/comments/')
+    fetch('/comments/')
       .then(data => data.json())
       .then((res) => {
         if (!res.success) this.setState({ error: res.error });
@@ -112,12 +115,18 @@ class CommentBox extends Component {
     this.messagesEnd.scrollIntoView({ behavior: "smooth" });
   }
 
-  componentDidMount() {
+  start() {
+    this.socket = io(server, {'forceNew': true, 'transport': ['websocket']});
+    this.listener();
     this.loadCommentsFromServer();
     if (!this.pollInterval) {
-      this.pollInterval = setInterval(this.loadCommentsFromServer, 10000);
+      this.pollInterval = setInterval(this.loadCommentsFromServer, 60000);
     }
     this.scrollToBottom();
+  }
+
+  componentDidMount() {
+    this.checkLogin();
   }
 
   componentWillUnmount() {
@@ -133,9 +142,7 @@ class CommentBox extends Component {
     return (
       <div className="container">
         <div className="comments">
-          <CommentList 
-            handleDeleteComment={this.onDeleteComment}
-            handleUpdateComment={this.onUpdateComment}
+          <CommentList
             data={this.state.data} 
           />
         <div style={{ float:"left", clear: "both" }}
@@ -144,7 +151,7 @@ class CommentBox extends Component {
         </div>
         <div className="form">
           <CommentForm
-            author={this.state.author}
+            username={this.state.username}
             text={this.state.text}
             handleChangeText={this.onChangeText}
             handleSubmit={this.submitComment}

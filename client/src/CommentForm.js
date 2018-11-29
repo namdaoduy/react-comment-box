@@ -1,4 +1,3 @@
-// CommentForm.js
 import React from 'react';
 import PropTypes from 'prop-types';
 
@@ -6,10 +5,10 @@ const CommentForm = props => (
   <div>
     <input
       type="text"
-      name="author"
+      name="username"
       placeholder="Your name…"
       autoComplete="off"
-      value={props.author}
+      value={props.username}
       onChange={props.handleChangeText}
     />
     <input
@@ -29,12 +28,12 @@ CommentForm.propTypes = {
   handleSubmit: PropTypes.func.isRequired,
   handleChangeText: PropTypes.func.isRequired,
   text: PropTypes.string,
-  author: PropTypes.string,
+  username: PropTypes.string,
 };
 
 CommentForm.defaultProps = {
   text: '',
-  author: '',
+  username: '',
 };
 
 export default CommentForm;

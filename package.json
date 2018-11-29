@@ -1,6 +1,7 @@
-{ "scripts": {
+{
+  "scripts": {
     "start:server": "cd backend && nodemon server.js --exec babel-node --presets es2015,stage-0",
-    "start:client": "cd client && yarn start",
+    "start:client": "cd client && npm start",
     "start:dev": "concurrently \"yarn start:server\" \"yarn start:client\""
   },
   "name": "mern-comment-box",
@@ -13,9 +14,11 @@
     "babel-preset-stage-0": "^6.24.1",
     "body-parser": "^1.18.3",
     "concurrently": "^3.6.1",
+    "cors": "^2.8.5",
     "express": "^4.16.3",
     "mongoose": "^5.2.7",
     "morgan": "^1.9.0",
-    "nodemon": "^1.18.3"
+    "nodemon": "^1.18.3",
+    "socket.io": "^2.2.0"
   }
 }
